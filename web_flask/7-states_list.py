@@ -1,26 +1,27 @@
 #!/usr/bin/python3
 ''' script that starts a Flask web application '''
 
-from flask import Flask
-from flask import render_template
 from models import storage
-from models.state import State
+from flask import Flask, render_template
 
 app = Flask(__name__)
+app.url_map.strict_slashes = False
 
 
 @app.teardown_appcontext
-def teardown_db(exception):
-    """ Function that close """
-    storage.close()
+def teardown_db(exception=None):
+    """removes the current SQLAlchemy Session
+    """
+    if storage is not None:
+        storage.close()
 
 
-@app.route('/states_list', strict_slashes=False)
-def states():
-    ''' Function that return list of all states '''
-    all_states = storage.all(State).values()
-    return render_template('7-states_list.html', all_states=all_states)
+@app.route('/states_list')
+def states_list(n=None):
+    """displays a HTML page: inside the tag BODY"""
+    states = storage.all('State')
+    return render_template('7-states_list.html', states=states)
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port='5000')
+    app.run(debug=True)
